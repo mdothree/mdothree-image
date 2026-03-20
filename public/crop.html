@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crop Image — mdothree</title>
+  <meta name="description" content="Drag to crop images with aspect ratio presets — square, 16:9, 4:3, and more." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://mdothree.com/crop" />
+  <!-- Open Graph -->
+  <meta property="og:type"        content="website" />
+  <meta property="og:title"       content="Crop Image — mdothree" />
+  <meta property="og:description" content="Drag to crop images with aspect ratio presets — square, 16:9, 4:3, and more." />
+  <meta property="og:url"         content="https://mdothree.com/crop" />
+  <meta property="og:site_name"   content="mdothree" />
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary" />
+  <meta name="twitter:title"       content="Crop Image — mdothree" />
+  <meta name="twitter:description" content="Drag to crop images with aspect ratio presets — square, 16:9, 4:3, and more." />
+  <!-- PWA -->
+  <meta name="color-scheme" content="dark light" />
+  <meta name="theme-color" content="#10B981" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
+  <link rel="manifest" href="/manifest.json" />
+  
+  <!-- DNS prefetch / preconnect for external resources -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="preconnect" href="https://js.stripe.com" crossorigin />
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="dns-prefetch" href="https://firestore.googleapis.com" />
+  <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/pages/crop.css" />
+  
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">m<span class="dot">.</span>three <span style="color:var(--slate-600);margin-left:8px;font-size:0.7rem;">/ image</span></a>
+      <ul class="nav-links">
+        <li><a href="resize.html">Resize</a></li>
+        <li><a href="convert.html">Convert</a></li>
+        <li><a href="compress.html">Compress</a></li>
+        <li><a href="crop.html" class="active">Crop</a></li>
+        <li><a href="rotate.html">Rotate</a></li>
+        <li><a href="remove-bg.html">Remove BG</a></li>
+        <li style="margin-left:auto;"><a href="pricing.html">Pricing</a></li>
+        <li><a href="account.html">Account</a></li>
+      </ul>
+    </div>
+    <button class="nav-hamburger" id="navHamburger" aria-label="Toggle menu" aria-expanded="false">☰</button>
+  </nav>
+
+  <main class="tool-page" id="main-content">
+    <div class="container">
+      <div class="tool-header animate-fade-up">
+        <div class="breadcrumb"><a href="index.html">Image Tools</a><span>/</span> Crop</div>
+        <h1>✂️ Crop Image</h1>
+        <p>Drag to select the area you want to keep.</p>
+      </div>
+
+      <div class="tool-layout-wide" class="animate-fade-up-2">
+        <div class="panel">
+          <div class="drop-zone" id="dropZone" style="display:block;">
+            <input type="file" id="fileInput" accept="image/*" />
+            <span class="drop-zone-icon">🖼️</span>
+            <div class="drop-zone-title">Drop image here</div>
+          </div>
+          <div id="cropArea" class="hidden mt-16" style="text-align:center;">
+            <div id="cropWrap">
+              <img id="cropImg" src="" alt="" />
+              <div id="cropBox">
+                <div class="crop-handle tl" data-corner="tl"></div>
+                <div class="crop-handle tr" data-corner="tr"></div>
+                <div class="crop-handle bl" data-corner="bl"></div>
+                <div class="crop-handle br" data-corner="br"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel">
+            <div class="panel-title">Aspect Ratio</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn btn-ghost" data-ratio="free">Free</button>
+              <button class="btn btn-ghost" data-ratio="1:1">1:1 Square</button>
+              <button class="btn btn-ghost" data-ratio="16:9">16:9 Wide</button>
+              <button class="btn btn-ghost" data-ratio="4:3">4:3</button>
+              <button class="btn btn-ghost" data-ratio="3:2">3:2</button>
+              <button class="btn btn-ghost" data-ratio="9:16">9:16 Portrait</button>
+            </div>
+          </div>
+          <div class="panel mt-16" id="cropInfo" style="display:none;">
+            <div class="panel-title">Selection</div>
+            <p class="text-xs text-muted" id="cropDims">—</p>
+            <button class="btn btn-primary w-full mt-16" id="cropBtn">✂️ Crop & Download</button>
+          </div>
+        </div>
+      </div>
+      <div id="alertArea" class="mt-16"></div>
+    </div>
+  </main>
+
+  <footer class="footer"><div class="footer-inner"><div class="footer-copy">© 2024 mdothree.com</div></div></footer>
+
+  
+  <script type="module" src="js/pages/crop.js"></script>
+  <script src="js/nav-toggle.js"></script>
+</body>
+</html>

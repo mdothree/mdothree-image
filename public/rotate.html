@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rotate & Flip Image — mdothree</title>
+  <meta name="description" content="Rotate images by any angle, flip horizontal or vertical. Transparent background support." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://mdothree.com/rotate" />
+  <!-- Open Graph -->
+  <meta property="og:type"        content="website" />
+  <meta property="og:title"       content="Rotate & Flip Image — mdothree" />
+  <meta property="og:description" content="Rotate images by any angle, flip horizontal or vertical. Transparent background support." />
+  <meta property="og:url"         content="https://mdothree.com/rotate" />
+  <meta property="og:site_name"   content="mdothree" />
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary" />
+  <meta name="twitter:title"       content="Rotate & Flip Image — mdothree" />
+  <meta name="twitter:description" content="Rotate images by any angle, flip horizontal or vertical. Transparent background support." />
+  <!-- PWA -->
+  <meta name="color-scheme" content="dark light" />
+  <meta name="theme-color" content="#10B981" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
+  <link rel="manifest" href="/manifest.json" />
+  
+  <!-- DNS prefetch / preconnect for external resources -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="preconnect" href="https://js.stripe.com" crossorigin />
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="dns-prefetch" href="https://firestore.googleapis.com" />
+  <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">m<span class="dot">.</span>three <span style="color:var(--slate-600);margin-left:8px;font-size:0.7rem;">/ image</span></a>
+      <ul class="nav-links">
+        <li><a href="resize.html">Resize</a></li>
+        <li><a href="convert.html">Convert</a></li>
+        <li><a href="compress.html">Compress</a></li>
+        <li><a href="crop.html">Crop</a></li>
+        <li><a href="rotate.html" class="active">Rotate</a></li>
+        <li style="margin-left:auto;"><a href="pricing.html">Pricing</a></li>
+        <li><a href="account.html">Account</a></li>
+      </ul>
+    </div>
+    <button class="nav-hamburger" id="navHamburger" aria-label="Toggle menu" aria-expanded="false">☰</button>
+  </nav>
+
+  <main class="tool-page" id="main-content">
+    <div class="container">
+      <div class="tool-header animate-fade-up">
+        <div class="breadcrumb"><a href="index.html">Image Tools</a><span>/</span> Rotate & Flip</div>
+        <h1>🔃 Rotate & Flip</h1>
+        <p>Rotate by any angle, flip horizontally or vertically.</p>
+      </div>
+
+      <div class="tool-layout" class="animate-fade-up-2">
+        <div>
+          <div class="panel">
+            <div class="drop-zone" id="dropZone" role="button" tabindex="0" aria-label="Drop an image here or click to browse">
+              <input type="file" id="fileInput" accept="image/*" />
+              <span class="drop-zone-icon">🖼️</span>
+              <div class="drop-zone-title">Drop image here</div>
+            </div>
+          </div>
+
+          <div class="panel mt-16" id="controls" style="display:none;">
+            <div class="panel-title">Transform</div>
+
+            <div class="form-group">
+              <label class="form-label">Quick Rotate</label>
+              <div class="btn-group">
+                <button class="btn btn-ghost" id="rot90l">↺ 90°</button>
+                <button class="btn btn-ghost" id="rot90r">↻ 90°</button>
+                <button class="btn btn-ghost" id="rot180">↕ 180°</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Custom Angle</label>
+              <div class="range-group">
+                <input type="range" id="angle" min="-180" max="180" value="0" />
+                <span class="range-value" id="angleVal">0°</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Flip</label>
+              <div class="btn-group">
+                <button class="btn btn-ghost" id="flipH">⇔ Horizontal</button>
+                <button class="btn btn-ghost" id="flipV">⇕ Vertical</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Background color (for rotation gaps)</label>
+              <div class="color-input-group">
+                <input type="color" id="bgColor" value="#ffffff" />
+                <button class="btn btn-ghost" id="bgTransparent" style="font-size:0.78rem;padding:6px 12px;">Transparent</button>
+              </div>
+            </div>
+
+            <div class="btn-group mt-8">
+              <button class="btn btn-primary" id="downloadBtn">⬇️ Download</button>
+              <button class="btn btn-ghost" id="resetBtn">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" id="previewPanel" style="display:none;">
+          <div class="panel-title">Preview</div>
+          <canvas id="previewCanvas" style="max-width:100%;border-radius:var(--radius-md);background:repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 0 0 / 16px 16px;"></canvas>
+        </div>
+      </div>
+      <div id="alertArea" class="mt-16"></div>
+    </div>
+  </main>
+
+  <footer class="footer"><div class="footer-inner"><div class="footer-copy">© 2024 mdothree.com</div></div></footer>
+
+  
+  <script type="module" src="js/pages/rotate.js"></script>
+  <script src="js/nav-toggle.js"></script>
+</body>
+</html>

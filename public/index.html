@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image Tools — mdothree</title>
+  <meta name="description" content="Free image tools — resize, convert, compress, crop, rotate, remove background. All in-browser." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://mdothree.com/index" />
+  <!-- Open Graph -->
+  <meta property="og:type"        content="website" />
+  <meta property="og:title"       content="Image Tools — mdothree" />
+  <meta property="og:description" content="Free image tools — resize, convert, compress, crop, rotate, remove background. All in-browser." />
+  <meta property="og:url"         content="https://mdothree.com/index" />
+  <meta property="og:site_name"   content="mdothree" />
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary" />
+  <meta name="twitter:title"       content="Image Tools — mdothree" />
+  <meta name="twitter:description" content="Free image tools — resize, convert, compress, crop, rotate, remove background. All in-browser." />
+  <!-- PWA -->
+  <meta name="color-scheme" content="dark light" />
+  <meta name="theme-color" content="#10B981" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
+  <link rel="manifest" href="/manifest.json" />
+  <!-- DNS prefetch / preconnect for external resources -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="preconnect" href="https://js.stripe.com" crossorigin />
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="dns-prefetch" href="https://firestore.googleapis.com" />
+  <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">m<span class="dot">.</span>three <span style="color:var(--slate-600);margin-left:8px;font-size:0.7rem;">/ image</span></a>
+      <ul class="nav-links">
+        <li><a href="resize.html">Resize</a></li>
+        <li><a href="convert.html">Convert</a></li>
+        <li><a href="compress.html">Compress</a></li>
+        <li><a href="crop.html">Crop</a></li>
+        <li><a href="rotate.html">Rotate</a></li>
+        <li style="margin-left:auto;"><a href="pricing.html">Pricing</a></li>
+        <li><a href="account.html">Account</a></li>
+      </ul>
+    </div>
+    <button class="nav-hamburger" id="navHamburger" aria-label="Toggle menu" aria-expanded="false">☰</button>
+  </nav>
+
+  <main id="main-content">
+    <section class="hero">
+      <div class="container">
+        <span class="hero-tag animate-fade-up">🖼️ Image Tools</span>
+        <h1 class="animate-fade-up-2">Edit images.<br><em>No uploads needed.</em></h1>
+        <p class="animate-fade-up-3">Resize, convert, compress, crop — all powered by your browser's Canvas API. Zero data leaves your device.</p>
+      </div>
+    </section>
+
+    <section class="container animate-fade-up-4">
+      <div class="tools-grid">
+        <a href="resize.html" class="tool-card">
+          <div class="tool-card-icon">↔️</div>
+          <div class="tool-card-title">Resize</div>
+          <div class="tool-card-desc">Scale by percentage or exact pixel dimensions.</div>
+          <div class="tool-card-arrow">→</div>
+        </a>
+        <a href="convert.html" class="tool-card">
+          <div class="tool-card-icon">🔄</div>
+          <div class="tool-card-title">Convert</div>
+          <div class="tool-card-desc">JPG ↔ PNG ↔ WebP ↔ GIF format conversion.</div>
+          <div class="tool-card-arrow">→</div>
+        </a>
+        <a href="compress.html" class="tool-card">
+          <div class="tool-card-icon">🗜️</div>
+          <div class="tool-card-title">Compress</div>
+          <div class="tool-card-desc">Reduce file size with interactive quality control.</div>
+          <div class="tool-card-arrow">→</div>
+        </a>
+        <a href="crop.html" class="tool-card">
+          <div class="tool-card-icon">✂️</div>
+          <div class="tool-card-title">Crop</div>
+          <div class="tool-card-desc">Drag-to-crop with aspect ratio presets.</div>
+          <div class="tool-card-arrow">→</div>
+        </a>
+        <a href="rotate.html" class="tool-card">
+          <div class="tool-card-icon">🔃</div>
+          <div class="tool-card-title">Rotate & Flip</div>
+          <div class="tool-card-desc">Rotate by any angle, flip horizontal or vertical.</div>
+          <div class="tool-card-arrow">→</div>
+        </a>
+        <a href="remove-bg.html" class="tool-card">
+          <div class="tool-card-icon">🎭</div>
+          <div class="tool-card-title">Remove BG</div>
+          <div class="tool-card-desc">Simple background removal using edge detection.</div>
+          <div class="tool-card-arrow">→</div>
+        </a>
+      </div>
+
+      <div class="panel mt-32" style="display:flex;gap:24px;flex-wrap:wrap;align-items:center;justify-content:space-between;">
+        <div>
+          <div class="panel-title" style="border:none;margin:0;padding:0;margin-bottom:6px;">⚡ Canvas-powered</div>
+          <p class="text-sm text-muted">All transforms use the browser's built-in Canvas API and Web Workers. Fast, private, and free.</p>
+        </div>
+        <div style="display:flex;gap:28px;flex-shrink:0;">
+          <div><div class="stat-value">6</div><div class="stat-label">Tools</div></div>
+          <div><div class="stat-value">0ms</div><div class="stat-label">Upload time</div></div>
+          <div><div class="stat-value">Free</div><div class="stat-label">Always</div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-links">
+        <a href="resize.html">Resize</a>
+        <a href="convert.html">Convert</a>
+        <a href="compress.html">Compress</a>
+        <a href="crop.html">Crop</a>
+        <a href="rotate.html">Rotate</a>
+      </div>
+      <div class="footer-copy">© 2024 mdothree.com — Free utilities for everyone.</div>
+    </div>
+  </footer>
+  <script src="js/nav-toggle.js"></script>
+</body>
+</html>

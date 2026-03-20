@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resize Image — mdothree</title>
+  <meta name="description" content="Scale images by percentage or exact pixels. Live preview. Supports JPG, PNG, WebP." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://mdothree.com/resize" />
+  <!-- Open Graph -->
+  <meta property="og:type"        content="website" />
+  <meta property="og:title"       content="Resize Image — mdothree" />
+  <meta property="og:description" content="Scale images by percentage or exact pixels. Live preview. Supports JPG, PNG, WebP." />
+  <meta property="og:url"         content="https://mdothree.com/resize" />
+  <meta property="og:site_name"   content="mdothree" />
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary" />
+  <meta name="twitter:title"       content="Resize Image — mdothree" />
+  <meta name="twitter:description" content="Scale images by percentage or exact pixels. Live preview. Supports JPG, PNG, WebP." />
+  <!-- PWA -->
+  <meta name="color-scheme" content="dark light" />
+  <meta name="theme-color" content="#10B981" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
+  <link rel="manifest" href="/manifest.json" />
+  
+  <!-- DNS prefetch / preconnect for external resources -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="preconnect" href="https://js.stripe.com" crossorigin />
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="dns-prefetch" href="https://firestore.googleapis.com" />
+  <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">m<span class="dot">.</span>three <span style="color:var(--slate-600);margin-left:8px;font-size:0.7rem;">/ image</span></a>
+      <ul class="nav-links">
+        <li><a href="resize.html" class="active">Resize</a></li>
+        <li><a href="convert.html">Convert</a></li>
+        <li><a href="compress.html">Compress</a></li>
+        <li><a href="crop.html">Crop</a></li>
+        <li><a href="rotate.html">Rotate</a></li>
+        <li><a href="remove-bg.html">Remove BG</a></li>
+        <li style="margin-left:auto;"><a href="pricing.html">Pricing</a></li>
+        <li><a href="account.html">Account</a></li>
+      </ul>
+    </div>
+    <button class="nav-hamburger" id="navHamburger" aria-label="Toggle menu" aria-expanded="false">☰</button>
+  </nav>
+
+  <main class="tool-page" id="main-content">
+    <div class="container">
+      <div class="tool-header animate-fade-up">
+        <div class="breadcrumb"><a href="index.html">Image Tools</a><span>/</span> Resize</div>
+        <h1>↔️ Resize Image</h1>
+        <p>Scale your image by percentage or set exact pixel dimensions.</p>
+      </div>
+
+      <div class="tool-layout" class="animate-fade-up-2">
+        <div>
+          <div class="panel">
+            <div class="drop-zone" id="dropZone" role="button" tabindex="0" aria-label="Drop an image here or click to browse">
+              <input type="file" id="fileInput" accept="image/*" />
+              <span class="drop-zone-icon">🖼️</span>
+              <div class="drop-zone-title">Drop an image here</div>
+              <div class="drop-zone-sub">JPG, PNG, WebP, GIF</div>
+            </div>
+            <div id="origInfo" class="hidden mt-16">
+              <div class="file-item">
+                <span class="file-item-icon" id="origThumb" style="width:40px;height:40px;object-fit:cover;border-radius:4px;"></span>
+                <div style="flex:1;">
+                  <div class="file-item-name" id="origName">—</div>
+                  <div class="text-xs text-muted" id="origDims">—</div>
+                </div>
+                <span class="file-item-size" id="origSize">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel mt-16" id="settings" style="display:none;">
+            <div class="panel-title">Resize Options</div>
+            <div class="tabs">
+              <button class="tab-btn active" data-mode="percent">Percentage</button>
+              <button class="tab-btn" data-mode="pixels">Pixels</button>
+            </div>
+
+            <div id="modePercent">
+              <div class="form-group">
+                <label class="form-label">Scale</label>
+                <div class="range-group">
+                  <input type="range" id="percent" min="1" max="200" value="50" />
+                  <span class="range-value" id="percentVal">50%</span>
+                </div>
+              </div>
+              <p class="text-xs text-muted" id="resultDimsPercent">→ will output at 50%</p>
+            </div>
+
+            <div id="modePixels" class="hidden">
+              <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:end;">
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">Width (px)</label>
+                  <input type="number" class="form-input" id="widthPx" placeholder="800" min="1" />
+                </div>
+                <div style="padding-bottom:10px;color:var(--slate-600);font-size:1.2rem;">×</div>
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">Height (px)</label>
+                  <input type="number" class="form-input" id="heightPx" placeholder="600" min="1" />
+                </div>
+              </div>
+              <div class="toggle-group mt-8">
+                <label class="toggle">
+                  <input type="checkbox" id="lockAspect" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+                <span class="toggle-label">Lock aspect ratio</span>
+              </div>
+            </div>
+
+            <div class="form-group mt-16">
+              <label class="form-label">Output format</label>
+              <select class="form-select" id="outFormat" style="max-width:200px;">
+                <option value="same">Same as input</option>
+                <option value="image/jpeg">JPG</option>
+                <option value="image/png">PNG</option>
+                <option value="image/webp">WebP</option>
+              </select>
+            </div>
+
+            <button class="btn btn-primary mt-8" id="resizeBtn">↔️ Resize & Download</button>
+          </div>
+        </div>
+
+        <div class="panel" id="previewPanel" style="display:none;">
+          <div class="panel-title">Preview</div>
+          <canvas id="previewCanvas" style="max-width:100%;border-radius:var(--radius-md);background:repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 0 0 / 16px 16px;"></canvas>
+          <div class="mt-16 flex gap-16 items-center">
+            <div><div class="stat-value" id="outDims" style="font-size:1rem;">—</div><div class="stat-label">Output size</div></div>
+            <div><div class="stat-value" id="outFileSize" style="font-size:1rem;">—</div><div class="stat-label">Est. file size</div></div>
+          </div>
+        </div>
+      </div>
+      <div id="alertArea"></div>
+    </div>
+  </main>
+
+  <footer class="footer"><div class="footer-inner"><div class="footer-copy">© 2024 mdothree.com</div></div></footer>
+
+  
+  <script type="module" src="js/pages/resize.js"></script>
+  <script src="js/nav-toggle.js"></script>
+</body>
+</html>
