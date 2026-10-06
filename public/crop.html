@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Crop Image — mdothree</title>
+  <title>Crop Image</title>
   <meta name="description" content="Drag to crop images with aspect ratio presets — square, 16:9, 4:3, and more." />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://mdothree.com/crop" />
+  <link rel="canonical" href="https://image.mdothree.com/crop" />
   <!-- Open Graph -->
   <meta property="og:type"        content="website" />
-  <meta property="og:title"       content="Crop Image — mdothree" />
+  <meta property="og:title"       content="Crop Image" />
   <meta property="og:description" content="Drag to crop images with aspect ratio presets — square, 16:9, 4:3, and more." />
-  <meta property="og:url"         content="https://mdothree.com/crop" />
+  <meta property="og:url"         content="https://image.mdothree.com/crop" />
   <meta property="og:site_name"   content="mdothree" />
   <!-- Twitter Card -->
   <meta name="twitter:card"        content="summary" />
-  <meta name="twitter:title"       content="Crop Image — mdothree" />
+  <meta name="twitter:title"       content="Crop Image" />
   <meta name="twitter:description" content="Drag to crop images with aspect ratio presets — square, 16:9, 4:3, and more." />
   <!-- PWA -->
   <meta name="color-scheme" content="dark light" />
@@ -63,13 +63,14 @@
         <p>Drag to select the area you want to keep.</p>
       </div>
 
-      <div class="tool-layout-wide" class="animate-fade-up-2">
+      <div class="tool-layout-wide animate-fade-up-2">
         <div class="panel">
           <div class="drop-zone" id="dropZone" style="display:block;">
             <input type="file" id="fileInput" accept="image/*" />
             <span class="drop-zone-icon">🖼️</span>
             <div class="drop-zone-title">Drop image here</div>
           </div>
+          <div id="alertArea" role="status" aria-live="polite"></div>
           <div id="cropArea" class="hidden mt-16" style="text-align:center;">
             <div id="cropWrap">
               <img id="cropImg" src="" alt="" />
@@ -102,7 +103,6 @@
           </div>
         </div>
       </div>
-      <div id="alertArea" class="mt-16"></div>
     </div>
   </main>
 

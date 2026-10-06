@@ -27,7 +27,77 @@ export function downloadBlob(blob, filename) {
   a.href = url; a.download = filename;
   document.body.appendChild(a); a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  // Revoking synchronously can cancel the download in Safari/Firefox.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ── Output formats ─────────────────────────────────────────────────────────
+// Canvas can only encode a few formats, and which ones varies by browser
+// (e.g. older Safari has no WebP encoder and silently returns PNG bytes).
+// No browser encodes GIF or SVG. Always name files from the blob's real type.
+
+const EXT_FOR_TYPE = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/avif': 'avif' };
+const ENCODABLE = ['image/jpeg', 'image/png', 'image/webp'];
+const _encodeSupport = {};
+
+export function extensionFor(type) {
+  return EXT_FOR_TYPE[type] || 'png';
+}
+
+export function canEncode(type) {
+  if (type === 'image/png') return true;
+  if (!ENCODABLE.includes(type)) return false;
+  if (type in _encodeSupport) return _encodeSupport[type];
+  let ok = false;
+  try {
+    const c = document.createElement('canvas');
+    c.width = c.height = 1;
+    ok = c.toDataURL(type).startsWith(`data:${type}`);
+  } catch (e) { ok = false; }
+  _encodeSupport[type] = ok;
+  return ok;
+}
+
+/** Best encodable output type for a given input type ("Same as input"). */
+export function outputTypeFor(inputType) {
+  return canEncode(inputType) ? inputType : 'image/png';
+}
+
+/** Disable <option>s whose format this browser cannot encode. */
+export function disableUnsupportedFormats(select) {
+  if (!select) return;
+  for (const opt of select.options) {
+    if (opt.value.startsWith('image/') && !canEncode(opt.value)) {
+      opt.disabled = true;
+      if (!/not supported/.test(opt.textContent)) opt.textContent += ' (not supported in this browser)';
+    }
+  }
+  if (select.selectedOptions[0]?.disabled) {
+    const first = Array.from(select.options).find(o => !o.disabled);
+    if (first) select.value = first.value;
+  }
+}
+
+/**
+ * Create a canvas for encoding to `type`. JPEG has no alpha channel, so
+ * transparent pixels would turn black: fill white first for JPEG only
+ * (PNG and WebP keep transparency).
+ */
+export function createOutputCanvas(width, height, type) {
+  const canvas = document.createElement('canvas');
+  canvas.width = width; canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (type === 'image/jpeg') { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, width, height); }
+  return { canvas, ctx };
+}
+
+export function isImageFile(file) {
+  return !!file && ((file.type || '').startsWith('image/') ||
+    /\.(jpe?g|png|gif|webp|bmp|avif|svg)$/i.test(file.name || ''));
+}
+
+export function baseName(name) {
+  return (name || 'image').replace(/\.[^.]+$/, '');
 }
 
 // Draw image centered + fitted to canvas

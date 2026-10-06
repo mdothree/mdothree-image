@@ -1,14 +1,19 @@
 // imageCompress.js — Quality-based compression using Canvas API
-export async function compressImage(file, { quality = 0.75, format } = {}) {
-  const bitmap = await createImageBitmap(file);
-  const canvas = document.createElement('canvas');
-  canvas.width  = bitmap.width;
-  canvas.height = bitmap.height;
-  const ctx = canvas.getContext('2d');
-  const fmt = format || file.type || 'image/jpeg';
-  if (fmt !== 'image/png') { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+import { canvasToBlob, createOutputCanvas, outputTypeFor } from '../utils/canvasUtils.js';
+
+/**
+ * Re-encode an image at the given quality.
+ * @param {Blob|ImageBitmap} source  File/Blob, or an already-decoded ImageBitmap
+ * @param {{quality?: number, format?: string}} opts  format: target MIME type
+ *   (defaults to the input type when the browser can encode it, else PNG)
+ * @returns {Promise<Blob>} blob.type is the format actually produced
+ */
+export async function compressImage(source, { quality = 0.75, format } = {}) {
+  const bitmap = source instanceof Blob
+    ? await createImageBitmap(source, { imageOrientation: 'from-image' })
+    : source;
+  const fmt = format || outputTypeFor(source.type || 'image/jpeg');
+  const { canvas, ctx } = createOutputCanvas(bitmap.width, bitmap.height, fmt);
   ctx.drawImage(bitmap, 0, 0);
-  return new Promise((resolve, reject) =>
-    canvas.toBlob(b => b ? resolve(b) : reject(new Error('Compression failed')), fmt, quality)
-  );
+  return canvasToBlob(canvas, fmt, quality);
 }

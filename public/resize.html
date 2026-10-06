@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Resize Image — mdothree</title>
+  <title>Resize Image</title>
   <meta name="description" content="Scale images by percentage or exact pixels. Live preview. Supports JPG, PNG, WebP." />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://mdothree.com/resize" />
+  <link rel="canonical" href="https://image.mdothree.com/resize" />
   <!-- Open Graph -->
   <meta property="og:type"        content="website" />
-  <meta property="og:title"       content="Resize Image — mdothree" />
+  <meta property="og:title"       content="Resize Image" />
   <meta property="og:description" content="Scale images by percentage or exact pixels. Live preview. Supports JPG, PNG, WebP." />
-  <meta property="og:url"         content="https://mdothree.com/resize" />
+  <meta property="og:url"         content="https://image.mdothree.com/resize" />
   <meta property="og:site_name"   content="mdothree" />
   <!-- Twitter Card -->
   <meta name="twitter:card"        content="summary" />
-  <meta name="twitter:title"       content="Resize Image — mdothree" />
+  <meta name="twitter:title"       content="Resize Image" />
   <meta name="twitter:description" content="Scale images by percentage or exact pixels. Live preview. Supports JPG, PNG, WebP." />
   <!-- PWA -->
   <meta name="color-scheme" content="dark light" />
@@ -61,7 +61,7 @@
         <p>Scale your image by percentage or set exact pixel dimensions.</p>
       </div>
 
-      <div class="tool-layout" class="animate-fade-up-2">
+      <div class="tool-layout animate-fade-up-2">
         <div>
           <div class="panel">
             <div class="drop-zone" id="dropZone" role="button" tabindex="0" aria-label="Drop an image here or click to browse">
@@ -133,6 +133,7 @@
 
             <button class="btn btn-primary mt-8" id="resizeBtn">↔️ Resize & Download</button>
           </div>
+          <div id="alertArea" role="status" aria-live="polite"></div>
         </div>
 
         <div class="panel" id="previewPanel" style="display:none;">
@@ -144,7 +145,6 @@
           </div>
         </div>
       </div>
-      <div id="alertArea"></div>
     </div>
   </main>
 

@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Compress Image — mdothree</title>
+  <title>Compress Image</title>
   <meta name="description" content="Reduce image file size with live quality preview. Supports JPG, PNG, and WebP output." />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://mdothree.com/compress" />
+  <link rel="canonical" href="https://image.mdothree.com/compress" />
   <!-- Open Graph -->
   <meta property="og:type"        content="website" />
-  <meta property="og:title"       content="Compress Image — mdothree" />
+  <meta property="og:title"       content="Compress Image" />
   <meta property="og:description" content="Reduce image file size with live quality preview. Supports JPG, PNG, and WebP output." />
-  <meta property="og:url"         content="https://mdothree.com/compress" />
+  <meta property="og:url"         content="https://image.mdothree.com/compress" />
   <meta property="og:site_name"   content="mdothree" />
   <!-- Twitter Card -->
   <meta name="twitter:card"        content="summary" />
-  <meta name="twitter:title"       content="Compress Image — mdothree" />
+  <meta name="twitter:title"       content="Compress Image" />
   <meta name="twitter:description" content="Reduce image file size with live quality preview. Supports JPG, PNG, and WebP output." />
   <!-- PWA -->
   <meta name="color-scheme" content="dark light" />
@@ -61,7 +61,7 @@
         <p>Reduce image file size with live quality preview.</p>
       </div>
 
-      <div class="tool-layout" class="animate-fade-up-2">
+      <div class="tool-layout animate-fade-up-2">
         <div>
           <div class="panel">
             <div class="drop-zone" id="dropZone" role="button" tabindex="0" aria-label="Drop an image here or click to browse">
@@ -89,6 +89,7 @@
             </div>
             <button class="btn btn-primary w-full" id="downloadBtn" style="display:none;">⬇️ Download Compressed</button>
           </div>
+          <div id="alertArea" role="status" aria-live="polite"></div>
         </div>
 
         <div>
@@ -106,7 +107,6 @@
           </div>
         </div>
       </div>
-      <div id="alertArea" class="mt-16"></div>
     </div>
   </main>
 

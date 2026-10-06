@@ -1,5 +1,6 @@
 // Page controller: crop.html
 import { initPaywall, isPremium, requirePremium, FREE_LIMITS } from '../stripe-paywall.js';
+import { downloadBlob, canvasToBlob, createOutputCanvas, outputTypeFor, extensionFor, isImageFile, baseName } from '../utils/canvasUtils.js';
 const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
     const cropArea = document.getElementById('cropArea');
@@ -9,18 +10,30 @@ const dropZone = document.getElementById('dropZone');
     const cropBtn = document.getElementById('cropBtn');
     const alertArea = document.getElementById('alertArea');
     let origFile = null;
-initPaywall();, naturalW = 0, naturalH = 0, displayW = 0, displayH = 0;
+    let naturalW = 0, naturalH = 0, displayW = 0, displayH = 0;
+    initPaywall();
     let cropX = 0, cropY = 0, cropW = 0, cropH = 0;
     let isDragging = false, isResizing = false, dragCorner = null;
     let startX = 0, startY = 0, startCrop = {};
     let currentRatio = 'free';
 
+    function showAlert(type, msg) {
+      alertArea.innerHTML = '';
+      const div = document.createElement('div');
+      div.className = `alert alert-${type}`;
+      div.textContent = msg;
+      alertArea.appendChild(div);
+    }
+
     function loadFile(file) {
+      if (!isImageFile(file)) { showAlert('error', "❌ That file isn't an image. Drop a JPG, PNG, WebP or GIF."); return; }
+      alertArea.innerHTML = '';
       origFile = file;
       if (cropImg._previewUrl) URL.revokeObjectURL(cropImg._previewUrl);
       const url = URL.createObjectURL(file);
       cropImg._previewUrl = url;
       cropImg.src = url;
+      cropImg.onerror = () => showAlert('error', `❌ Your browser can't decode this image (${file.type || 'unknown type'}).`);
       cropImg.onload = () => {
         naturalW = cropImg.naturalWidth; naturalH = cropImg.naturalHeight;
         displayW = cropImg.offsetWidth; displayH = cropImg.offsetHeight;
@@ -41,17 +54,15 @@ initPaywall();, naturalW = 0, naturalH = 0, displayW = 0, displayH = 0;
       cropBox.style.top = cropY + 'px';
       cropBox.style.width = cropW + 'px';
       cropBox.style.height = cropH + 'px';
-      if (!isPremium() && origFile && origFile.size > FREE_LIMITS.pdfFileSizeMB * 1024 * 1024) {
-        requirePremium('Cropping images over 10MB requires Pro', 'image-crop-size');
-        return;
-      }
       const scaleX = naturalW / displayW, scaleY = naturalH / displayH;
       document.getElementById('cropDims').textContent =
         `${Math.round(cropX * scaleX)}, ${Math.round(cropY * scaleY)} → ${Math.round(cropW * scaleX)} × ${Math.round(cropH * scaleY)}px`;
     }
 
     // Drag move
-    cropBox.addEventListener('mousedown', e => {
+    // Pointer events (not mouse-only) so cropping works on touch screens.
+    cropBox.style.touchAction = 'none';
+    cropBox.addEventListener('pointerdown', e => {
       if (e.target.classList.contains('crop-handle')) return;
       isDragging = true;
       startX = e.clientX - cropX; startY = e.clientY - cropY;
@@ -60,7 +71,8 @@ initPaywall();, naturalW = 0, naturalH = 0, displayW = 0, displayH = 0;
 
     // Resize corners
     cropBox.querySelectorAll('.crop-handle').forEach(h => {
-      h.addEventListener('mousedown', e => {
+      h.style.touchAction = 'none';
+      h.addEventListener('pointerdown', e => {
         isResizing = true; dragCorner = h.dataset.corner;
         startX = e.clientX; startY = e.clientY;
         startCrop = { x: cropX, y: cropY, w: cropW, h: cropH };
@@ -68,7 +80,7 @@ initPaywall();, naturalW = 0, naturalH = 0, displayW = 0, displayH = 0;
       });
     });
 
-    document.addEventListener('mousemove', e => {
+    document.addEventListener('pointermove', e => {
       if (!isDragging && !isResizing) return;
       if (isDragging) {
         cropX = Math.max(0, Math.min(displayW - cropW, e.clientX - startX));
@@ -91,7 +103,21 @@ initPaywall();, naturalW = 0, naturalH = 0, displayW = 0, displayH = 0;
       }
       updateCropBox();
     });
-    document.addEventListener('mouseup', () => { isDragging = false; isResizing = false; });
+    const endDrag = () => { isDragging = false; isResizing = false; };
+    document.addEventListener('pointerup', endDrag);
+    document.addEventListener('pointercancel', endDrag);
+
+    // The displayed image size changes with the window; keep the crop box
+    // mapped to the same image region instead of using a stale size.
+    window.addEventListener('resize', () => {
+      if (!naturalW || !displayW || !displayH) return;
+      const nw = cropImg.offsetWidth, nh = cropImg.offsetHeight;
+      if (!nw || !nh || (nw === displayW && nh === displayH)) return;
+      const fx = nw / displayW, fy = nh / displayH;
+      cropX *= fx; cropY *= fy; cropW *= fx; cropH *= fy;
+      displayW = nw; displayH = nh;
+      updateCropBox();
+    });
 
     document.querySelectorAll('[data-ratio]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -107,29 +133,35 @@ initPaywall();, naturalW = 0, naturalH = 0, displayW = 0, displayH = 0;
       });
     });
 
-    cropBtn.addEventListener('click', () => {
+    cropBtn.addEventListener('click', async () => {
+      if (!origFile || !naturalW) return;
+      if (!isPremium() && origFile.size > FREE_LIMITS.pdfFileSizeMB * 1024 * 1024) {
+        // Checked once here, not on every crop-box move (which re-opened the modal continuously).
+        requirePremium('Cropping images over 10MB requires Pro', 'image-crop-size');
+        return;
+      }
       const scaleX = naturalW / displayW, scaleY = naturalH / displayH;
       const sx = Math.round(cropX * scaleX), sy = Math.round(cropY * scaleY);
-      const sw = Math.round(cropW * scaleX), sh = Math.round(cropH * scaleY);
-      const canvas = document.createElement('canvas');
-      canvas.width = sw; canvas.height = sh;
-      const ctx = canvas.getContext('2d');
+      const sw = Math.max(1, Math.round(cropW * scaleX)), sh = Math.max(1, Math.round(cropH * scaleY));
+      // Keep the input format when the browser can encode it (PNG stays
+      // lossless + transparent); JPEG output gets a white background.
+      const fmt = outputTypeFor(origFile.type);
+      const { canvas, ctx } = createOutputCanvas(sw, sh, fmt);
       ctx.drawImage(cropImg, sx, sy, sw, sh, 0, 0, sw, sh);
-      canvas.toBlob(blob => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        const base = origFile.name.replace(/\.[^.]+$/, '');
-        a.href = url; a.download = `${base}-cropped.jpg`; a.click();
-        URL.revokeObjectURL(url);
-        alertArea.innerHTML = `<div class="alert alert-success">✅ Cropped ${sw}×${sh}px image downloaded.</div>`;
-      }, 'image/jpeg', 0.92);
+      try {
+        const blob = await canvasToBlob(canvas, fmt, 0.92);
+        downloadBlob(blob, `${baseName(origFile.name)}-cropped.${extensionFor(blob.type)}`);
+        showAlert('success', `✅ Cropped ${sw}×${sh}px image downloaded.`);
+      } catch (err) {
+        showAlert('error', `❌ Could not export the crop: ${err.message}`);
+      }
     });
 
-    fileInput.addEventListener('change', () => { if (fileInput.files[0]) loadFile(fileInput.files[0]); });
+    fileInput.addEventListener('change', () => { if (fileInput.files[0]) loadFile(fileInput.files[0]); fileInput.value = ''; });
     dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
     dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
     dropZone.addEventListener('drop', e => {
       e.preventDefault(); dropZone.classList.remove('dragover');
       const f = e.dataTransfer.files[0];
-      if (f?.type.startsWith('image/')) loadFile(f);
+      if (f) loadFile(f);
     });

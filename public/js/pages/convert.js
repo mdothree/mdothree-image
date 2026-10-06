@@ -1,5 +1,5 @@
 // Page controller: convert.html
-import { formatBytes } from '../utils/canvasUtils.js';
+import { formatBytes, downloadBlob, canvasToBlob, createOutputCanvas, extensionFor, disableUnsupportedFormats, isImageFile, baseName } from '../utils/canvasUtils.js';
     import { initPaywall, isPremium, requirePremium, FREE_LIMITS } from '../stripe-paywall.js';
     import { saveToHistory } from '../config/firebase.js';
 
@@ -16,6 +16,16 @@ import { formatBytes } from '../utils/canvasUtils.js';
     let files = [];
     initPaywall().then(p => { if(p) { const b=document.getElementById('freeBanner'); if(b) b.remove(); } });
 
+    disableUnsupportedFormats(targetFormat);
+
+    function showAlert(type, msg) {
+      alertArea.innerHTML = '';
+      const div = document.createElement('div');
+      div.className = `alert alert-${type}`;
+      div.textContent = msg;
+      alertArea.appendChild(div);
+    }
+
     qualitySlider.addEventListener('input', () => { qualityVal.textContent = qualitySlider.value + '%'; });
 
     targetFormat.addEventListener('change', () => {
@@ -29,9 +39,10 @@ import { formatBytes } from '../utils/canvasUtils.js';
         li.className = 'file-item';
         li.innerHTML = `
           <span class="file-item-icon">🖼️</span>
-          <span class="file-item-name">${f.name}</span>
+          <span class="file-item-name"></span>
           <span class="file-item-size">${f.type.split('/')[1]?.toUpperCase() || '?'} · ${formatBytes(f.size)}</span>
-          <button class="file-item-remove" data-i="${i}">✕</button>`;
+          <button class="file-item-remove" data-i="${i}" aria-label="Remove">✕</button>`;
+        li.querySelector('.file-item-name').textContent = f.name; // user data: text only
         fileList.appendChild(li);
       });
       fileList.querySelectorAll('.file-item-remove').forEach(btn =>
@@ -40,11 +51,18 @@ import { formatBytes } from '../utils/canvasUtils.js';
     }
 
     function addFiles(newFiles) {
-      files = [...files, ...Array.from(newFiles).filter(f => f.type.startsWith('image/'))];
+      const all = Array.from(newFiles);
+      const images = all.filter(isImageFile);
+      alertArea.innerHTML = '';
+      if (images.length < all.length) {
+        const n = all.length - images.length;
+        showAlert('error', `❌ ${n} file${n > 1 ? 's were' : ' was'} skipped — only image files can be converted.`);
+      }
+      files = [...files, ...images];
       renderList();
     }
 
-    fileInput.addEventListener('change', () => addFiles(fileInput.files));
+    fileInput.addEventListener('change', () => { addFiles(fileInput.files); fileInput.value = ''; });
     dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
     dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
     dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); addFiles(e.dataTransfer.files); });
@@ -58,42 +76,37 @@ import { formatBytes } from '../utils/canvasUtils.js';
       }
       convertBtn.disabled = true;
       alertArea.innerHTML = '';
-      try {
       const fmt = targetFormat.value;
-      const ext = fmt.split('/')[1].replace('jpeg', 'jpg');
       const quality = parseInt(qualitySlider.value) / 100;
-      let done = 0;
-
-      for (const file of files) {
-        try {
-          const bitmap = await createImageBitmap(file);
-          const canvas = document.createElement('canvas');
-          canvas.width = bitmap.width; canvas.height = bitmap.height;
-          const ctx = canvas.getContext('2d');
-          if (fmt !== 'image/png') { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
-          ctx.drawImage(bitmap, 0, 0);
-          await new Promise(res => canvas.toBlob(blob => {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            const base = file.name.replace(/\.[^.]+$/, '');
-            a.href = url; a.download = `${base}.${ext}`; a.click();
-            URL.revokeObjectURL(url);
+      // Declared outside try: it was block-scoped inside it and read after
+      // the finally, which threw a ReferenceError and suppressed every result
+      // message and the history entry.
+      let done = 0, lastExt = extensionFor(fmt);
+      try {
+        for (const file of files) {
+          try {
+            const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+            // White background only for JPEG (no alpha); PNG/WebP keep transparency.
+            const { canvas, ctx } = createOutputCanvas(bitmap.width, bitmap.height, fmt);
+            ctx.drawImage(bitmap, 0, 0);
+            if (bitmap.close) bitmap.close();
+            // canvasToBlob rejects on a null blob instead of hanging forever.
+            const blob = await canvasToBlob(canvas, fmt, quality);
+            lastExt = extensionFor(blob.type); // name by what was actually encoded
+            downloadBlob(blob, `${baseName(file.name)}.${lastExt}`);
             done++;
-            res();
-          }, fmt, quality));
-          await new Promise(r => setTimeout(r, 150));
-        } catch (e) {
-          console.error(e);
+            await new Promise(r => setTimeout(r, 150));
+          } catch (e) {
+            console.error(e);
+          }
         }
-      }
-      convertBtn.disabled = false;
       } finally { convertBtn.disabled = false; }
       if (done === 0) {
-        alertArea.innerHTML = `<div class="alert alert-error">❌ No images could be converted. Check file format.</div>`;
+        showAlert('error', '❌ No images could be converted. Check the file format.');
       } else if (done < files.length) {
-        alertArea.innerHTML = `<div class="alert alert-warning">⚠️ Converted ${done}/${files.length} images. Some files could not be processed.</div>`;
+        showAlert('warning', `⚠️ Converted ${done}/${files.length} images. Some files could not be processed.`);
       } else {
-        alertArea.innerHTML = `<div class="alert alert-success">✅ Converted ${done} image${done !== 1 ? 's' : ''} to ${ext.toUpperCase()}.</div>`;
+        showAlert('success', `✅ Converted ${done} image${done !== 1 ? 's' : ''} to ${lastExt.toUpperCase()}.`);
       }
       await saveToHistory('image-convert', { count: done, targetFormat: fmt });
     });

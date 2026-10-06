@@ -1,7 +1,7 @@
 // Page controller: resize.html
 import { resizeImage } from '../services/imageResize.js';
 import { initPaywall, isPremium, requirePremium, FREE_LIMITS } from '../stripe-paywall.js';
-    import { formatBytes } from '../utils/canvasUtils.js';
+    import { formatBytes, downloadBlob, canvasToBlob, createOutputCanvas, outputTypeFor, extensionFor, disableUnsupportedFormats, isImageFile, baseName } from '../utils/canvasUtils.js';
 
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
@@ -10,6 +10,48 @@ import { initPaywall, isPremium, requirePremium, FREE_LIMITS } from '../stripe-p
     const alertArea = document.getElementById('alertArea');
     let origImg = null, origFile = null, origW = 0, origH = 0, currentMode = 'percent';
     initPaywall();
+    disableUnsupportedFormats(document.getElementById('outFormat'));
+
+    function showAlert(type, msg) {
+      alertArea.innerHTML = '';
+      const div = document.createElement('div');
+      div.className = `alert alert-${type}`;
+      div.textContent = msg;
+      alertArea.appendChild(div);
+    }
+
+    // "Same as input" resolves to a format the browser can actually encode
+    // (GIF/SVG/BMP inputs -> PNG); previously a GIF came out as PNG bytes
+    // named .gif and an SVG as ".svg+xml".
+    function targetType() {
+      const outFmt = document.getElementById('outFormat').value;
+      return outFmt === 'same' ? outputTypeFor(origFile?.type || 'image/png') : outFmt;
+    }
+
+    function renderFull(tw, th, fmt) {
+      const { canvas, ctx } = createOutputCanvas(tw, th, fmt);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(origImg, 0, 0, tw, th);
+      return canvas;
+    }
+
+    // Real size estimate: encode at full size (debounced). The old value was
+    // w*h*3 — the raw bitmap size, often 10x the real file.
+    let estTimer = null, estRun = 0;
+    function scheduleEstimate(tw, th) {
+      clearTimeout(estTimer);
+      const el = document.getElementById('outFileSize');
+      el.textContent = '…';
+      estTimer = setTimeout(async () => {
+        const id = ++estRun;
+        try {
+          const blob = await canvasToBlob(renderFull(tw, th, targetType()), targetType(), 0.92);
+          if (id === estRun) el.textContent = `~${formatBytes(blob.size)} ${extensionFor(blob.type).toUpperCase()}`;
+        } catch (e) { if (id === estRun) el.textContent = '—'; }
+      }, 400);
+    }
+    document.getElementById('outFormat').addEventListener('change', () => updatePreview());
 
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -47,6 +89,8 @@ import { initPaywall, isPremium, requirePremium, FREE_LIMITS } from '../stripe-p
     });
 
     function loadImage(file) {
+      if (!isImageFile(file)) { showAlert('error', "❌ That file isn't an image. Drop a JPG, PNG, WebP or GIF."); return; }
+      alertArea.innerHTML = '';
       origFile = file;
       if (window._resizePreviewUrl) URL.revokeObjectURL(window._resizePreviewUrl);
       const url = URL.createObjectURL(file);
@@ -67,6 +111,7 @@ import { initPaywall, isPremium, requirePremium, FREE_LIMITS } from '../stripe-p
         document.getElementById('resultDimsPercent').textContent = `→ ${Math.round(origW * pct/100)} × ${Math.round(origH * pct/100)} px`;
         updatePreview();
       };
+      origImg.onerror = () => showAlert('error', `❌ Your browser can't decode this image (${file.type || 'unknown type'}).`);
       origImg.src = url;
     }
 
@@ -89,17 +134,17 @@ import { initPaywall, isPremium, requirePremium, FREE_LIMITS } from '../stripe-p
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(origImg, 0, 0, previewCanvas.width, previewCanvas.height);
       document.getElementById('outDims').textContent = `${tw} × ${th}px`;
-      document.getElementById('outFileSize').textContent = `~${formatBytes(tw * th * 3)}`;
+      scheduleEstimate(tw, th);
       document.getElementById('previewPanel').style.display = 'block';
     }
 
-    fileInput.addEventListener('change', () => { if (fileInput.files[0]) loadImage(fileInput.files[0]); });
+    fileInput.addEventListener('change', () => { if (fileInput.files[0]) loadImage(fileInput.files[0]); fileInput.value = ''; });
     dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
     dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
     dropZone.addEventListener('drop', e => {
       e.preventDefault(); dropZone.classList.remove('dragover');
       const f = e.dataTransfer.files[0];
-      if (f?.type.startsWith('image/')) loadImage(f);
+      if (f) loadImage(f);
     });
 
     resizeBtn.addEventListener('click', async () => {
@@ -118,25 +163,14 @@ import { initPaywall, isPremium, requirePremium, FREE_LIMITS } from '../stripe-p
           tw = parseInt(widthPx.value) || origW;
           th = parseInt(heightPx.value) || origH;
         }
-        const outFmt = document.getElementById('outFormat').value;
-        const fmt = outFmt === 'same' ? (origFile.type || 'image/jpeg') : outFmt;
-        const ext = fmt.split('/')[1].replace('jpeg','jpg');
-        const canvas = document.createElement('canvas');
-        canvas.width = tw; canvas.height = th;
-        const ctx = canvas.getContext('2d');
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(origImg, 0, 0, tw, th);
-        canvas.toBlob(blob => {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          const base = origFile.name.replace(/\.[^.]+$/, '');
-          a.href = url; a.download = `${base}-${tw}x${th}.${ext}`; a.click();
-          URL.revokeObjectURL(url);
-          alertArea.innerHTML = `<div class="alert alert-success">✅ Downloaded ${tw}×${th}px image.</div>`;
-        }, fmt, 0.92);
+        if (!(tw > 0 && th > 0)) throw new Error('Width and height must be positive numbers.');
+        const fmt = targetType();
+        // JPEG output gets a white background so transparency doesn't turn black.
+        const blob = await canvasToBlob(renderFull(tw, th, fmt), fmt, 0.92);
+        downloadBlob(blob, `${baseName(origFile.name)}-${tw}x${th}.${extensionFor(blob.type)}`);
+        showAlert('success', `✅ Downloaded ${tw}×${th}px ${extensionFor(blob.type).toUpperCase()} image.`);
       } catch (err) {
-        alertArea.innerHTML = `<div class="alert alert-error">❌ ${err.message}</div>`;
+        showAlert('error', `❌ ${err.message}`);
       } finally {
         resizeBtn.disabled = false;
       }

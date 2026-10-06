@@ -1,5 +1,6 @@
 // Page controller: rotate.html
 import { initPaywall, isPremium, requirePremium, FREE_LIMITS } from '../stripe-paywall.js';
+import { downloadBlob, canvasToBlob, outputTypeFor, extensionFor, isImageFile, baseName } from '../utils/canvasUtils.js';
 const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
     const previewCanvas = document.getElementById('previewCanvas');
@@ -19,9 +20,19 @@ initPaywall();
       render();
     });
 
+    function showAlert(type, msg) {
+      alertArea.innerHTML = '';
+      const div = document.createElement('div');
+      div.className = `alert alert-${type}`;
+      div.textContent = msg;
+      alertArea.appendChild(div);
+    }
+
     function loadFile(file) {
+      if (!isImageFile(file)) { showAlert('error', "❌ That file isn't an image. Drop a JPG, PNG, WebP or GIF."); return; }
+      alertArea.innerHTML = '';
       origFile = file;
-      createImageBitmap(file).then(bmp => {
+      createImageBitmap(file, { imageOrientation: 'from-image' }).then(bmp => {
         if (!isPremium() && file.size > FREE_LIMITS.pdfFileSizeMB * 1024 * 1024) {
           requirePremium('Rotating images over 10MB requires Pro', 'image-rotate-size');
           return;
@@ -30,7 +41,7 @@ initPaywall();
         document.getElementById('controls').style.display = 'block';
         document.getElementById('previewPanel').style.display = 'block';
         render();
-      });
+      }).catch(() => showAlert('error', `❌ Your browser can't decode this image (${file.type || 'unknown type'}).`));
     }
 
     function render() {
@@ -63,9 +74,9 @@ initPaywall();
       render();
     });
 
-    document.getElementById('rot90l').addEventListener('click', () => { rotation = (rotation - 90 + 360) % 360; angleSlider.value = rotation > 180 ? rotation - 360 : rotation; angleVal.textContent = rotation + '°'; render(); });
-    document.getElementById('rot90r').addEventListener('click', () => { rotation = (rotation + 90) % 360; angleSlider.value = rotation > 180 ? rotation - 360 : rotation; angleVal.textContent = rotation + '°'; render(); });
-    document.getElementById('rot180').addEventListener('click', () => { rotation = (rotation + 180) % 360; angleSlider.value = rotation > 180 ? rotation - 360 : rotation; angleVal.textContent = rotation + '°'; render(); });
+    document.getElementById('rot90l').addEventListener('click', () => { rotation = (rotation - 90 + 360) % 360; angleSlider.value = rotation > 180 ? rotation - 360 : rotation; angleVal.textContent = angleSlider.value + '°'; render(); });
+    document.getElementById('rot90r').addEventListener('click', () => { rotation = (rotation + 90) % 360; angleSlider.value = rotation > 180 ? rotation - 360 : rotation; angleVal.textContent = angleSlider.value + '°'; render(); });
+    document.getElementById('rot180').addEventListener('click', () => { rotation = (rotation + 180) % 360; angleSlider.value = rotation > 180 ? rotation - 360 : rotation; angleVal.textContent = angleSlider.value + '°'; render(); });
     document.getElementById('flipH').addEventListener('click', () => { flipX = !flipX; document.getElementById('flipH').classList.toggle('btn-secondary', flipX); render(); });
     document.getElementById('flipV').addEventListener('click', () => { flipY = !flipY; document.getElementById('flipV').classList.toggle('btn-secondary', flipY); render(); });
     document.getElementById('resetBtn').addEventListener('click', () => { rotation = 0; flipX = false; flipY = false; angleSlider.value = 0; angleVal.textContent = '0°'; document.getElementById('flipH').classList.remove('btn-secondary'); document.getElementById('flipV').classList.remove('btn-secondary'); render(); });
@@ -88,23 +99,21 @@ initPaywall();
       ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1);
       ctx.drawImage(origBitmap, -w / 2, -h / 2);
       ctx.restore();
-      const fmt = useTransparent ? 'image/png' : 'image/jpeg';
-      const ext = useTransparent ? 'png' : 'jpg';
-      canvas.toBlob(blob => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        const base = origFile.name.replace(/\.[^.]+$/, '');
-        a.href = url; a.download = `${base}-rotated.${ext}`; a.click();
-        URL.revokeObjectURL(url);
-        alertArea.innerHTML = `<div class="alert alert-success">✅ Downloaded.</div>`;
-      }, fmt, 0.92);
+      // Keep the input format (a PNG no longer becomes a lossy JPG); with a
+      // transparent background, JPEG input switches to PNG to keep alpha.
+      let fmt = outputTypeFor(origFile.type);
+      if (useTransparent && fmt === 'image/jpeg') fmt = 'image/png';
+      canvasToBlob(canvas, fmt, 0.92).then(blob => {
+        downloadBlob(blob, `${baseName(origFile.name)}-rotated.${extensionFor(blob.type)}`);
+        showAlert('success', `✅ Downloaded ${extensionFor(blob.type).toUpperCase()}.`);
+      }).catch(err => showAlert('error', `❌ Could not export: ${err.message}`));
     });
 
-    fileInput.addEventListener('change', () => { if (fileInput.files[0]) loadFile(fileInput.files[0]); });
+    fileInput.addEventListener('change', () => { if (fileInput.files[0]) loadFile(fileInput.files[0]); fileInput.value = ''; });
     dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
     dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
     dropZone.addEventListener('drop', e => {
       e.preventDefault(); dropZone.classList.remove('dragover');
       const f = e.dataTransfer.files[0];
-      if (f?.type.startsWith('image/')) loadFile(f);
+      if (f) loadFile(f);
     });

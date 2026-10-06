@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Remove Background — mdothree</title>
+  <title>Remove Background</title>
   <meta name="description" content="Remove solid color backgrounds from images using tolerance-based flood fill." />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://mdothree.com/remove-bg" />
+  <link rel="canonical" href="https://image.mdothree.com/remove-bg" />
   <!-- Open Graph -->
   <meta property="og:type"        content="website" />
-  <meta property="og:title"       content="Remove Background — mdothree" />
+  <meta property="og:title"       content="Remove Background" />
   <meta property="og:description" content="Remove solid color backgrounds from images using tolerance-based flood fill." />
-  <meta property="og:url"         content="https://mdothree.com/remove-bg" />
+  <meta property="og:url"         content="https://image.mdothree.com/remove-bg" />
   <meta property="og:site_name"   content="mdothree" />
   <!-- Twitter Card -->
   <meta name="twitter:card"        content="summary" />
-  <meta name="twitter:title"       content="Remove Background — mdothree" />
+  <meta name="twitter:title"       content="Remove Background" />
   <meta name="twitter:description" content="Remove solid color backgrounds from images using tolerance-based flood fill." />
   <!-- PWA -->
   <meta name="color-scheme" content="dark light" />
@@ -44,6 +44,7 @@
         <li><a href="convert.html">Convert</a></li>
         <li><a href="compress.html">Compress</a></li>
         <li><a href="crop.html">Crop</a></li>
+        <li><a href="rotate.html">Rotate</a></li>
         <li><a href="remove-bg.html" class="active">Remove BG</a></li>
         <li style="margin-left:auto;"><a href="pricing.html">Pricing</a></li>
         <li><a href="account.html">Account</a></li>
@@ -64,7 +65,7 @@
         ℹ️ Best results on images with uniform (solid color) backgrounds. For complex backgrounds, try adjusting tolerance.
       </div>
 
-      <div class="tool-layout" class="animate-fade-up-2">
+      <div class="tool-layout animate-fade-up-2">
         <div>
           <div class="panel">
             <div class="drop-zone" id="dropZone" role="button" tabindex="0" aria-label="Drop an image here or click to browse">
@@ -93,6 +94,11 @@
               <button class="btn btn-primary" id="removeBtn">🎭 Remove Background</button>
             </div>
           </div>
+          <div id="progressWrap" class="hidden mt-16">
+            <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+            <p class="text-sm text-muted mt-8" id="progressLabel">Processing...</p>
+          </div>
+          <div id="alertArea" role="status" aria-live="polite"></div>
         </div>
 
         <div class="panel" id="resultPanel" style="display:none;">
@@ -102,11 +108,6 @@
         </div>
       </div>
 
-      <div id="progressWrap" class="hidden mt-16">
-        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-        <p class="text-sm text-muted mt-8" id="progressLabel">Processing...</p>
-      </div>
-      <div id="alertArea" class="mt-16"></div>
     </div>
   </main>
 

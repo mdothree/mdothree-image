@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Convert Image — mdothree</title>
+  <title>Convert Image</title>
   <meta name="description" content="Convert between JPG, PNG, WebP formats. Batch convert multiple images at once." />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://mdothree.com/convert" />
+  <link rel="canonical" href="https://image.mdothree.com/convert" />
   <!-- Open Graph -->
   <meta property="og:type"        content="website" />
-  <meta property="og:title"       content="Convert Image — mdothree" />
+  <meta property="og:title"       content="Convert Image" />
   <meta property="og:description" content="Convert between JPG, PNG, WebP formats. Batch convert multiple images at once." />
-  <meta property="og:url"         content="https://mdothree.com/convert" />
+  <meta property="og:url"         content="https://image.mdothree.com/convert" />
   <meta property="og:site_name"   content="mdothree" />
   <!-- Twitter Card -->
   <meta name="twitter:card"        content="summary" />
-  <meta name="twitter:title"       content="Convert Image — mdothree" />
+  <meta name="twitter:title"       content="Convert Image" />
   <meta name="twitter:description" content="Convert between JPG, PNG, WebP formats. Batch convert multiple images at once." />
   <!-- PWA -->
   <meta name="color-scheme" content="dark light" />
@@ -58,7 +58,7 @@
       <div class="tool-header animate-fade-up">
         <div class="breadcrumb"><a href="index.html">Image Tools</a><span>/</span> Convert</div>
         <h1>🔄 Convert Image</h1>
-        <p>Convert between JPG, PNG, WebP, and GIF formats instantly.</p>
+        <p>Convert JPG, PNG, WebP and GIF images to JPG, PNG or WebP instantly.</p>
       </div>
 
       <div class="alert alert-info animate-fade-up" id="freeBanner" style="margin-bottom:20px;">
@@ -72,8 +72,10 @@
           <div class="drop-zone-sub">Select multiple files to batch convert</div>
         </div>
 
+        <ul class="file-list mt-16" id="fileList"></ul>
+
         <div id="controls" class="hidden mt-24">
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;max-width:600px;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;max-width:600px;">
             <div class="form-group">
               <label class="form-label">Convert to</label>
               <select class="form-select" id="targetFormat">
@@ -96,8 +98,7 @@
           </div>
         </div>
 
-        <ul class="file-list mt-16" id="fileList"></ul>
-        <div id="alertArea"></div>
+        <div id="alertArea" role="status" aria-live="polite"></div>
       </div>
     </div>
   </main>
