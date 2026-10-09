@@ -36,9 +36,16 @@ const dropZone = document.getElementById('dropZone');
       cropImg.onerror = () => showAlert('error', `❌ Your browser can't decode this image (${file.type || 'unknown type'}).`);
       cropImg.onload = () => {
         naturalW = cropImg.naturalWidth; naturalH = cropImg.naturalHeight;
-        displayW = cropImg.offsetWidth; displayH = cropImg.offsetHeight;
+        // Un-hide BEFORE measuring: a hidden <img> reports offsetWidth 0, which
+        // made the scale Infinity and the readout "NaN × NaNpx".
         dropZone.style.display = 'none';
         cropArea.classList.remove('hidden');
+        displayW = cropImg.offsetWidth || cropImg.getBoundingClientRect().width;
+        displayH = cropImg.offsetHeight || cropImg.getBoundingClientRect().height;
+        if (!displayW || !displayH) {
+          showAlert('error', "❌ Couldn't measure this image for cropping. Try another file or reload the page.");
+          return;
+        }
         // Default crop = full image with 10% margin
         cropX = Math.round(displayW * 0.05);
         cropY = Math.round(displayH * 0.05);
@@ -55,6 +62,10 @@ const dropZone = document.getElementById('dropZone');
       cropBox.style.width = cropW + 'px';
       cropBox.style.height = cropH + 'px';
       const scaleX = naturalW / displayW, scaleY = naturalH / displayH;
+      if (!isFinite(scaleX) || !isFinite(scaleY) || !(cropW > 0) || !(cropH > 0)) {
+        document.getElementById('cropDims').textContent = 'Drag on the image to select an area to crop.';
+        return;
+      }
       document.getElementById('cropDims').textContent =
         `${Math.round(cropX * scaleX)}, ${Math.round(cropY * scaleY)} → ${Math.round(cropW * scaleX)} × ${Math.round(cropH * scaleY)}px`;
     }
@@ -134,7 +145,11 @@ const dropZone = document.getElementById('dropZone');
     });
 
     cropBtn.addEventListener('click', async () => {
-      if (!origFile || !naturalW) return;
+      if (!origFile || !naturalW) { showAlert('error', '❌ Choose an image first.'); return; }
+      if (!displayW || !displayH || !(cropW >= 1) || !(cropH >= 1) || ![cropX, cropY, cropW, cropH].every(Number.isFinite)) {
+        showAlert('error', '❌ No crop area selected. Drag the box or its corners over the image, then try again.');
+        return;
+      }
       if (!isPremium() && origFile.size > FREE_LIMITS.pdfFileSizeMB * 1024 * 1024) {
         // Checked once here, not on every crop-box move (which re-opened the modal continuously).
         requirePremium('Cropping images over 10MB requires Pro', 'image-crop-size');
