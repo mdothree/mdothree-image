@@ -1,7 +1,7 @@
 {
   "name": "mdothree Image Tools",
   "short_name": "Image Tools",
-  "description": "Free image tools that run in your browser: resize, convert, compress, crop, rotate and flip images, and remove solid-color backgrounds from pictures.",
+  "description": "Image tools that run in your browser: resize, convert, compress, crop, rotate and flip images, and remove solid-color backgrounds from pictures.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

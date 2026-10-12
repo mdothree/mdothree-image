@@ -1,7 +1,7 @@
 {
   "name": "mdothree-image",
   "version": "1.0.0",
-  "description": "Image Tools \u2014 resize, convert, compress, crop, rotate. Free & client-side.",
+  "description": "Image Tools \u2014 resize, convert, compress, crop, rotate. Client-side.",
   "private": true,
   "type": "module",
   "scripts": {
