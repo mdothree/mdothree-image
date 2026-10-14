@@ -65,5 +65,11 @@
       "destination": "https://mdothree.com/$1",
       "permanent": true
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "**": false,
+      "main": true
+    }
+  }
 }
