@@ -1,6 +1,6 @@
 // Page controller: convert.html
 import { formatBytes, downloadBlob, canvasToBlob, createOutputCanvas, extensionFor, disableUnsupportedFormats, isImageFile, baseName } from '../utils/canvasUtils.js';
-    import { initPaywall, isPremium, requirePremium, FREE_LIMITS } from '../stripe-paywall.js';
+    import { initPaywall, isPremium, requirePremium, OPEN_LIMITS } from '../stripe-paywall.js';
     import { saveToHistory } from '../config/firebase.js';
 
     const dropZone = document.getElementById('dropZone');
@@ -70,7 +70,7 @@ import { formatBytes, downloadBlob, canvasToBlob, createOutputCanvas, extensionF
 
     convertBtn.addEventListener('click', async () => {
       if (!files.length) return;
-      if (files.length > FREE_LIMITS.imagesBatch && !isPremium()) {
+      if (files.length > OPEN_LIMITS.imagesBatch && !isPremium()) {
         requirePremium('Batch converting more than 1 image at a time', 'image-convert-batch');
         return;
       }

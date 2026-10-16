@@ -1,6 +1,6 @@
 // Page controller: resize.html
 import { resizeImage } from '../services/imageResize.js';
-import { initPaywall, isPremium, requirePremium, FREE_LIMITS } from '../stripe-paywall.js';
+import { initPaywall, isPremium, requirePremium, OPEN_LIMITS } from '../stripe-paywall.js';
     import { formatBytes, downloadBlob, canvasToBlob, createOutputCanvas, outputTypeFor, extensionFor, disableUnsupportedFormats, isImageFile, baseName } from '../utils/canvasUtils.js';
 
     const dropZone = document.getElementById('dropZone');
@@ -149,7 +149,7 @@ import { initPaywall, isPremium, requirePremium, FREE_LIMITS } from '../stripe-p
 
     resizeBtn.addEventListener('click', async () => {
       if (!origImg) return;
-      if (origFile && origFile.size > FREE_LIMITS.pdfFileSizeMB * 1024 * 1024 && !isPremium()) {
+      if (origFile && origFile.size > OPEN_LIMITS.pdfFileSizeMB * 1024 * 1024 && !isPremium()) {
         requirePremium('Resizing images over 10MB requires Pro', 'image-resize-size');
         return;
       }

@@ -1,6 +1,6 @@
 // Page controller: remove-bg.html
 import { removeBackground } from '../services/backgroundRemover.js';
-import { initPaywall, isPremium, requirePremium, FREE_LIMITS } from '../stripe-paywall.js';
+import { initPaywall, isPremium, requirePremium, OPEN_LIMITS } from '../stripe-paywall.js';
 import { saveToHistory } from '../config/firebase.js';
 import { downloadBlob, canvasToBlob, isImageFile, baseName } from '../utils/canvasUtils.js';
 
@@ -41,7 +41,7 @@ initPaywall();
 
     removeBtn.addEventListener('click', async () => {
       if (!origFile) return;
-      if (origFile.size > FREE_LIMITS.pdfFileSizeMB * 1024 * 1024 && !isPremium()) {
+      if (origFile.size > OPEN_LIMITS.pdfFileSizeMB * 1024 * 1024 && !isPremium()) {
         requirePremium('Removing backgrounds from images over 10MB requires Pro', 'image-remove-bg-size');
         return;
       }

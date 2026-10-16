@@ -1,5 +1,5 @@
 // Page controller: rotate.html
-import { initPaywall, isPremium, requirePremium, FREE_LIMITS } from '../stripe-paywall.js';
+import { initPaywall, isPremium, requirePremium, OPEN_LIMITS } from '../stripe-paywall.js';
 import { downloadBlob, canvasToBlob, outputTypeFor, extensionFor, isImageFile, baseName } from '../utils/canvasUtils.js';
 const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
@@ -33,7 +33,7 @@ initPaywall();
       alertArea.innerHTML = '';
       origFile = file;
       createImageBitmap(file, { imageOrientation: 'from-image' }).then(bmp => {
-        if (!isPremium() && file.size > FREE_LIMITS.pdfFileSizeMB * 1024 * 1024) {
+        if (!isPremium() && file.size > OPEN_LIMITS.pdfFileSizeMB * 1024 * 1024) {
           requirePremium('Rotating images over 10MB requires Pro', 'image-rotate-size');
           return;
         }

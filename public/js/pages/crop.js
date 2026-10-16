@@ -1,5 +1,5 @@
 // Page controller: crop.html
-import { initPaywall, isPremium, requirePremium, FREE_LIMITS } from '../stripe-paywall.js';
+import { initPaywall, isPremium, requirePremium, OPEN_LIMITS } from '../stripe-paywall.js';
 import { downloadBlob, canvasToBlob, createOutputCanvas, outputTypeFor, extensionFor, isImageFile, baseName } from '../utils/canvasUtils.js';
 const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
@@ -150,7 +150,7 @@ const dropZone = document.getElementById('dropZone');
         showAlert('error', '❌ No crop area selected. Drag the box or its corners over the image, then try again.');
         return;
       }
-      if (!isPremium() && origFile.size > FREE_LIMITS.pdfFileSizeMB * 1024 * 1024) {
+      if (!isPremium() && origFile.size > OPEN_LIMITS.pdfFileSizeMB * 1024 * 1024) {
         // Checked once here, not on every crop-box move (which re-opened the modal continuously).
         requirePremium('Cropping images over 10MB requires Pro', 'image-crop-size');
         return;
