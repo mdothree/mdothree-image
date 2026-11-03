@@ -1,5 +1,6 @@
 // Page controller: crop.html
 import { initPaywall, isPremium, requirePremium, FREE_LIMITS } from '../stripe-paywall.js';
+import { resizeCrop } from '../utils/cropGeometry.js';
 import { downloadBlob, canvasToBlob, createOutputCanvas, outputTypeFor, extensionFor, isImageFile, baseName } from '../utils/canvasUtils.js';
 const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
@@ -98,19 +99,8 @@ const dropZone = document.getElementById('dropZone');
         cropY = Math.max(0, Math.min(displayH - cropH, e.clientY - startY));
       } else if (isResizing) {
         const dx = e.clientX - startX, dy = e.clientY - startY;
-        let nx = startCrop.x, ny = startCrop.y, nw = startCrop.w, nh = startCrop.h;
-        if (dragCorner.includes('r')) nw = Math.max(20, startCrop.w + dx);
-        if (dragCorner.includes('b')) nh = Math.max(20, startCrop.h + dy);
-        if (dragCorner.includes('l')) { nx = startCrop.x + dx; nw = Math.max(20, startCrop.w - dx); }
-        if (dragCorner.includes('t')) { ny = startCrop.y + dy; nh = Math.max(20, startCrop.h - dy); }
-        if (currentRatio !== 'free') {
-          const [rw, rh] = currentRatio.split(':').map(Number);
-          nh = Math.round(nw * rh / rw);
-        }
-        cropX = Math.max(0, Math.min(nx, displayW - 20));
-        cropY = Math.max(0, Math.min(ny, displayH - 20));
-        cropW = Math.min(nw, displayW - cropX);
-        cropH = Math.min(nh, displayH - cropY);
+        const r = resizeCrop(startCrop, dragCorner, dx, dy, currentRatio, displayW, displayH);
+        cropX = r.x; cropY = r.y; cropW = r.w; cropH = r.h;
       }
       updateCropBox();
     });
